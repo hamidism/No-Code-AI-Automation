@@ -1,0 +1,311 @@
+{
+  "name": "Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1SxFX-rcvpJpz5-oWuwr6IjGDLCs50e-Tst-nTCbrBJ4",
+          "mode": "list",
+          "cachedResultName": "Google form",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SxFX-rcvpJpz5-oWuwr6IjGDLCs50e-Tst-nTCbrBJ4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 395318383,
+          "mode": "list",
+          "cachedResultName": "Form Responses 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SxFX-rcvpJpz5-oWuwr6IjGDLCs50e-Tst-nTCbrBJ4/edit#gid=395318383"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "id": "deb966c8-a340-4da5-9f3e-47eff54c7299",
+      "name": "Google Sheets Trigger",
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        -96
+      ],
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "LWQtBLfdb4XfpQkJ",
+          "name": "Google Sheets Trigger account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "has-timestamp",
+              "leftValue": "={{ $json[\"Timestamp\"] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "af946fb6-8750-41b0-bda0-c7bdf9af9f61",
+      "name": "Skip Blank Rows",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        256,
+        -64
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Summarize the following form submission in 2-3 sentences, and categorize it as \"Urgent,\" \"General,\" or \"Spam\".\n\nName: {{ $json[\"Name\"] }}\nEmail: {{ $json[\"Email\"] }}\nPhone: {{ $json[\"Phone\"] }}\nMessage: {{ $json[\"Message\"] }}\n\nRespond ONLY with valid JSON in this exact format, no extra text:\n{\"summary\": \"your summary here\", \"category\": \"Urgent, General, or Spam\"}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "52a13ae3-7307-4d35-b02e-0d8f58010f18",
+      "name": "Message a model",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        464,
+        -48
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "do4jW1hCW2hfdadR",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "909a8c49-caf2-49f5-9a92-00f8b689f58d",
+              "name": "summary",
+              "value": "={{ JSON.parse($json.content.parts[0].text).summary }}",
+              "type": "string"
+            },
+            {
+              "id": "375300b6-b67c-41ea-bd1c-192f7bbf828f",
+              "name": "category",
+              "value": "={{ JSON.parse($json.content.parts[0].text).category }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "468ec8bc-702f-4b0f-bc7a-38e4adb1a953",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        880,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1SxFX-rcvpJpz5-oWuwr6IjGDLCs50e-Tst-nTCbrBJ4",
+          "mode": "list",
+          "cachedResultName": "Google form",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SxFX-rcvpJpz5-oWuwr6IjGDLCs50e-Tst-nTCbrBJ4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 395318383,
+          "mode": "list",
+          "cachedResultName": "Form Responses 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SxFX-rcvpJpz5-oWuwr6IjGDLCs50e-Tst-nTCbrBJ4/edit#gid=395318383"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $('Google Sheets Trigger').item.json[\"Timestamp\"] }}",
+            "Summary": "=[{{ $json[\"category\"] }}] {{ $json[\"summary\"] }}"
+          },
+          "matchingColumns": [
+            "Timestamp"
+          ],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "9278f278-68d9-45a5-a0d6-61a25156ed14",
+      "name": "Update row in sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1152,
+        32
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Cgk66duZkTZU8RBB",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Skip Blank Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip Blank Rows": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "10e9370e-5d39-4e0f-bacb-e54a485dbfcd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5f5bb482b68cc4980e928ff4e347d2e41ef98492c06c81a02a2332a0f7999817"
+  },
+  "nodeGroups": [],
+  "id": "tLLdQafAngXgRjml",
+  "tags": []
+}
